@@ -1,29 +1,51 @@
 .button {
-  // padding-left: 37px;
-  // padding-right: 37px;
-  // min-height: 44px;
+  padding-left: 36px;
+  padding-right: 36px;
+  min-height: 44px;
+  min-width: 129px;
 
-  // font-family: inherit;
-  // font-weight: 700;
-  // font-size: 16px;
-  // line-height: 1.3125;
-  // letter-spacing: 0;
-  // background-color: var(--main-background-color);
-  // color: var(--accent-color);
-  // text-align: center;
-  // border-radius: 22px;
-  // border: 1px solid transparent;
-  // transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  // cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 1.3333;
+  text-transform: uppercase;
+  background-color: var(--input-background-color);
+  color: var(--text-color-white);
+  text-align: center;
+  border-radius: 5px;
+  border: 1px solid;
+  border-color: var(--text-color-white);
+  cursor: pointer;
+  transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 
-  // &:hover,
-  // &:focus {
-  //   background-color: var(--hover-bg-color-button);
-  // }
+  @media screen and (min-width: 768px) {
+    padding-left: 46px;
+    padding-right: 46px;
+    min-width: 152px;
+  }
 
-  // &__icon {
-  //   &--right {
-  //     margin-left: 12px;
-  //   }
-  // }
+  @media screen and (min-width: 1280px) {
+    padding-left: 41px;
+    padding-right: 41px;
+    min-width: 148px;
+  }
+
+  &--watched + &--queue {
+    margin-left: 20px;
+
+    @media screen and (min-width: 768px) {
+      margin-left: 32px;
+    }
+
+    @media screen and (min-width: 1280px) {
+      margin-left: 16px;
+    }
+  }
+
+  &--active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
 }
