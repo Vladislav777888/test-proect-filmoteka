@@ -13,14 +13,25 @@ refs.btnNext.addEventListener('click', onBtnNext);
 refs.btnPref.addEventListener('click', onBtnPref);
 refs.paginationList.addEventListener('click', onPaginationList);
 
-// Делаю изначально кнопку листания назад неактивной
+// Делаю изначально кнопку листания назад и вперед неактивной
 refs.btnPref.setAttribute('disabled', true);
+// refs.btnNext.setAttribute('disabled', true);
 
 // Делаем запрос на бекенд и рендерим популярные фильмы и пагинацию //
 fetchMovies(page)
   .then(data => {
     renderFilms(data);
     refs.paginationList.innerHTML = renderPagination(data);
+
+    const maxPage = 10;
+
+    if (maxPage < 5) {
+      refs.paginationList.style.justifyContent = 'center';
+    }
+
+    if (maxPage === 1) {
+      refs.btnNext.setAttribute('disabled', true);
+    }
 
     // Делаем активной кнопку первой страницы //
     document
@@ -58,7 +69,7 @@ function renderPagination(data) {
   let markup = [];
 
   // Перебираю все страницы из бекенда для того чтобы зарендерить соответсвующее количество кнопок в пагинацию //
-  for (let i = 1; i <= data.total_pages; i += 1) {
+  for (let i = 1; i <= 10; i += 1) {
     markup.push(i);
   }
 
@@ -93,7 +104,7 @@ function onBtnNext() {
       console.log(data);
       renderFilms(data);
 
-      const maxPage = data.total_pages;
+      const maxPage = 10;
 
       // Вызоов функции для листания вперед
       transformPaginationNext(page, data);
@@ -151,7 +162,7 @@ function onPaginationList(evt) {
 
         renderFilms(data);
 
-        const maxPage = data.total_pages;
+        const maxPage = 10;
 
         // Условия для того чтобы выбрать в какую сторону листаются страницы
         if (Number(evt.target.textContent) > Number(btnActive.textContent)) {
@@ -195,7 +206,7 @@ function giveAttributeBtnNext(page, maxPage) {
 
 // функции для листания вперед
 function transformPaginationNext(page, data) {
-  const maxPage = data.total_pages;
+  const maxPage = 10;
 
   if (page > 3 && page <= maxPage - 2) {
     refs.paginationList.style.transform = `translateX(calc((-40px) * ${iterator}))`;
@@ -209,7 +220,7 @@ function transformPaginationNext(page, data) {
 
 // функции для листания назад
 function transformPaginationPref(page, data) {
-  const maxPage = data.total_pages;
+  const maxPage = 10;
 
   if (page >= 3 && page < maxPage - 2) {
     refs.paginationList.style.transform = `translateX(calc(40px + ${transformValue}px))`;
@@ -223,7 +234,7 @@ function transformPaginationPref(page, data) {
 
 // функции для листания страниц вперед при клике по номерам страниц
 function transformPaginationNextWithEvt(evt, page, data) {
-  const maxPage = data.total_pages;
+  const maxPage = 10;
 
   // Поиск текущей и следующей активной кнопки
   const btnActiveValue = Number(
@@ -246,6 +257,7 @@ function transformPaginationNextWithEvt(evt, page, data) {
 
     transformValue += -40;
     iterator += 1;
+    console.log(11);
   }
 
   if (page > 3 && page <= maxPage - 2 && total === 2 && !condition) {
@@ -255,39 +267,43 @@ function transformPaginationNextWithEvt(evt, page, data) {
 
     transformValue += -80;
     iterator += 2;
+    console.log(22);
   }
 
-  if (condition && evtTargetValue === 4) {
+  if (condition && evtTargetValue === 4 && maxPage !== 5) {
     refs.paginationList.style.transform = `translateX(calc((-40px) * ${iterator}))`;
     refs.paginationList.style.transition =
       'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)';
 
     transformValue += -40;
     iterator += 1;
+    console.log(33);
   }
 
-  if (condition && evtTargetValue === 5) {
+  if (condition && evtTargetValue === 5 && maxPage !== 5) {
     refs.paginationList.style.transform = `translateX(calc(${transformValue}px - 80px))`;
     refs.paginationList.style.transition =
       'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)';
 
     transformValue += -80;
     iterator += 2;
+    console.log(44);
   }
 
-  if (condition2 && condition3) {
+  if (condition2 && condition3 && maxPage !== 5) {
     refs.paginationList.style.transform = `translateX(calc((-40px) * ${iterator}))`;
     refs.paginationList.style.transition =
       'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)';
 
     transformValue += -40;
     iterator += 1;
+    console.log(55);
   }
 }
 
 // функции для листания страниц назад при клике по номерам страниц
 function transformPaginationPrefWithEvt(evt, page, data) {
-  const maxPage = data.total_pages;
+  const maxPage = 10;
 
   // Поиск текущей и следующей активной кнопки
   const btnActiveValue = Number(
@@ -311,6 +327,7 @@ function transformPaginationPrefWithEvt(evt, page, data) {
 
     transformValue += 40;
     iterator -= 1;
+    console.log(1);
   }
 
   if (page >= 3 && page < maxPage - 2 && total === 2 && !condition) {
@@ -320,32 +337,36 @@ function transformPaginationPrefWithEvt(evt, page, data) {
 
     transformValue += 80;
     iterator -= 2;
+    console.log(2);
   }
 
-  if (btnActiveValue === 4 && condition) {
+  if (btnActiveValue === 4 && condition && maxPage !== 5) {
     refs.paginationList.style.transform = `translateX(calc(40px + ${transformValue}px))`;
     refs.paginationList.style.transition =
       'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)';
 
     transformValue += 40;
     iterator -= 1;
+    console.log(3);
   }
 
-  if (condition2 && condition3) {
+  if (condition2 && condition3 && maxPage !== 5) {
     refs.paginationList.style.transform = `translateX(calc(40px + ${transformValue}px))`;
     refs.paginationList.style.transition =
       'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)';
 
     transformValue += 40;
     iterator -= 1;
+    console.log(4);
   }
 
-  if (condition2 && condition4) {
+  if (condition2 && condition4 && maxPage !== 5) {
     refs.paginationList.style.transform = `translateX(calc(${transformValue}px + 80px))`;
     refs.paginationList.style.transition =
       'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)';
 
     transformValue += 80;
     iterator -= 2;
+    console.log(5);
   }
 }
