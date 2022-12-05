@@ -1,3 +1,3 @@
 import './sass/index.scss';
-import './js/refs';
-import './js/api-servis';
+import './js/structure/render';
+import './js/structure/pagination-scroll';
