@@ -1,13 +1,13 @@
-import { fetchMovies } from '../api-servise';
-import { renderFilms } from './render';
+import { fetchSearchMovies } from '../api-servise';
+import { renderFilms, searchQuery } from './render';
 import { smoothScrollUp } from '../scroll-up';
 import { refs } from '../refs';
-export { onBtnNext, onBtnPref, onPaginationList };
+export { onBtnNextSearch, onBtnPrefSearch, onPaginationListSearch };
 
 // Вешаем события на кнопки листания вперед и назад и на кнопки с номером страницы
-refs.btnNext.addEventListener('click', onBtnNext);
-refs.btnPref.addEventListener('click', onBtnPref);
-refs.paginationList.addEventListener('click', onPaginationList);
+refs.btnNext.addEventListener('click', onBtnNextSearch);
+refs.btnPref.addEventListener('click', onBtnPrefSearch);
+refs.paginationList.addEventListener('click', onPaginationListSearch);
 
 // Делаю изначально кнопку листания назад и вперед неактивной
 refs.btnPref.setAttribute('disabled', true);
@@ -18,7 +18,7 @@ let iterator = 1;
 let transformValue = 0;
 
 // Функция для обработки клика по кнопке "next" для листания страниц //
-function onBtnNext() {
+function onBtnNextSearch() {
   page += 1;
 
   // Делаю активной кнопку листания назад
@@ -34,7 +34,7 @@ function onBtnNext() {
   btnActive.classList.remove('pagination-list__btn--active');
 
   // Делаю запрос
-  fetchMovies(page)
+  fetchSearchMovies(searchQuery, page)
     .then(data => {
       console.log(data);
       renderFilms(data);
@@ -52,7 +52,7 @@ function onBtnNext() {
 }
 
 // Функция для обработки клика по кнопке "prev" для листания страниц //
-function onBtnPref() {
+function onBtnPrefSearch() {
   page -= 1;
 
   // Делаю активной кнопку листания вперед
@@ -70,7 +70,7 @@ function onBtnPref() {
   btnActive.classList.remove('pagination-list__btn--active');
 
   // Делаю запрос
-  fetchMovies(page)
+  fetchSearchMovies(searchQuery, page)
     .then(data => {
       // console.log(data);
       renderFilms(data);
@@ -86,14 +86,14 @@ function onBtnPref() {
 }
 
 // Функция для обработки клика непосредственно по кнопкам страниц для листания //
-function onPaginationList(evt) {
+function onPaginationListSearch(evt) {
   page = Number(evt.target.textContent);
 
   const btnActive = document.querySelector('.pagination-list__btn--active');
   const eventTarget = evt.target;
 
   if (btnActive !== eventTarget) {
-    fetchMovies(page)
+    fetchSearchMovies(searchQuery, page)
       .then(data => {
         // console.log(data);
 

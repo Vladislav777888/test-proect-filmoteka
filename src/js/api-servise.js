@@ -1,4 +1,4 @@
-export { fetchGenres, fetchMovies };
+export { fetchGenres, fetchMovies, fetchSearchMovies };
 
 const BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = '46cf2a6d2c28bead868caabe4f80f475';
@@ -17,6 +17,20 @@ function fetchGenres() {
 
 function fetchMovies(page) {
   return fetch(`${BASE_URL}/trending/movie/day?api_key=${API_KEY}&page=${page}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      return response.json();
+    })
+
+    .catch(err => console.log('Error!'));
+}
+
+function fetchSearchMovies(searchValue, page) {
+  return fetch(
+    `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${searchValue}&page=${page}`
+  )
     .then(response => {
       if (!response.ok) {
         throw new Error(response.status);

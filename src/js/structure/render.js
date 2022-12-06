@@ -1,57 +1,74 @@
-import { fetchGenres, fetchMovies } from '../api-servise';
+import { fetchGenres, fetchMovies, fetchSearchMovies } from '../api-servise';
+import { onBtnNext, onBtnPref, onPaginationList } from './pagination-scroll';
+import {
+  onBtnNextSearch,
+  onBtnPrefSearch,
+  onPaginationListSearch,
+} from './pagination-search';
 import { refs } from '../refs';
+import axios from 'axios';
+import notiflix from 'notiflix';
+import async from 'async';
+
+export { renderFilms, renderPagination, searchQuery };
 
 const LOCALSTORAGE_KEY = 'genres';
 const BASE_POSTER_URL = 'https://image.tmdb.org/t/p/w500/';
 const FAKE_POSTER =
   'https://freesvg.org/img/cyberscooty-movie-video-tape-remix.png';
 
+refs.form.addEventListener('submit', onFormSubmit);
+
 // Переменная для страниц
 let page = 1;
 
-// Делаем запрос на бекенд и рендерим популярные фильмы и пагинацию //
-fetchMovies(page)
-  .then(data => {
-    // console.log(data);
-    renderFilms(data);
-    refs.paginationList.innerHTML = renderPagination(data);
+// жанры
+let genres = [];
 
-    const maxPage = data.total_pages;
+// значение поискового слова
+let searchQuery = '';
 
-    if (maxPage < 5) {
-      refs.paginationList.style.justifyContent = 'center';
-    }
+window.addEventListener('DOMContentLoaded', async () => {
+  await fetchGenres()
+    .then(array => {
+      localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(array));
+    })
+    .catch(err => console.log(err));
 
-    if (maxPage === 1) {
-      refs.btnNext.setAttribute('disabled', true);
-    }
+  genres = await JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY));
 
-    // Делаем активной кнопку первой страницы //
-    document
-      .querySelector('.pagination-list__btn')
-      .classList.add('pagination-list__btn--active');
+  fetchMovies(page)
+    .then(data => {
+      renderFilms(data);
+      renderPagination(data);
 
-    // Убираем класс is-hidden из кнопок "next" и "prev" //
-    refs.btnNext.classList.remove('is-hidden');
-    refs.btnPref.classList.remove('is-hidden');
-  })
-  .catch(err => console.log(err));
+      const maxPage = data.total_pages;
 
-// Делаю запрос на локалсторедж для получения массива жанров фильмов
-fetchGenres()
-  .then(array => {
-    localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(array));
-  })
-  .catch(err => console.log(err));
+      if (maxPage < 5) {
+        refs.paginationList.style.justifyContent = 'center';
+      }
 
-const genres = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY));
-// console.log(genres);
+      if (maxPage === 1) {
+        refs.btnNext.setAttribute('disabled', true);
+      }
+
+      // Делаем активной кнопку первой страницы //
+      document
+        .querySelector('.pagination-list__btn')
+        .classList.add('pagination-list__btn--active');
+
+      // Убираем класс is-hidden из кнопок "next" и "prev" //
+      refs.btnNext.classList.remove('is-hidden');
+      refs.btnPref.classList.remove('is-hidden');
+    })
+    .catch(err => console.log(err));
+});
 
 // Функция для рендера популярных фильмов на первую страницу //
 function renderFilms(data) {
   const markup = data.results
     .map(({ poster_path, title, release_date, genre_ids, id }) => {
-      genresArray = [];
+      let genresArray = [];
       let filmGenres = '';
       genres.genres.map(genre => {
         if (genre_ids.includes(genre['id'])) {
@@ -99,18 +116,74 @@ function renderFilms(data) {
 
 // Функция для рендера пагинации //
 function renderPagination(data) {
-  let markup = [];
+  let array = [];
 
   // Перебираю все страницы из бекенда для того чтобы зарендерить соответсвующее количество кнопок в пагинацию //
   for (let i = 1; i <= data.total_pages; i += 1) {
-    markup.push(i);
+    array.push(i);
   }
 
-  return markup
+  const markup = array
     .map(number => {
       return `<li class="pagination-list__item">
             <button type="button" class="pagination-list__btn">${number}</button>
         </li>`;
     })
     .join('');
+  refs.paginationList.innerHTML = markup;
+}
+
+//--------------------RENDER GALLERY BY SEARCH-----------------
+
+function onFormSubmit(evt) {
+  evt.preventDefault();
+
+  refs.btnNext.removeEventListener('click', onBtnNext);
+  refs.btnPref.removeEventListener('click', onBtnPref);
+  refs.paginationList.removeEventListener('click', onPaginationList);
+
+  const searchValue = evt.target.elements.search.value.trim();
+  searchQuery += searchValue;
+  console.log(searchQuery);
+
+  if (!searchValue || searchValue.length === 0) {
+    refs.errerText.classList.remove('is-hidden');
+
+    setTimeout(() => {
+      refs.errerText.classList.add('is-hidden');
+    }, 3000);
+  }
+
+  fetchSearchMovies(searchValue, page)
+    .then(data => {
+      console.log(data);
+      renderFilms(data);
+      renderPagination(data);
+
+      refs.btnNext.addEventListener('click', onBtnNextSearch);
+      refs.btnPref.addEventListener('click', onBtnPrefSearch);
+      refs.paginationList.addEventListener('click', onPaginationListSearch);
+
+      const maxPage = data.total_pages;
+
+      if (maxPage < 5) {
+        refs.paginationList.style.justifyContent = 'center';
+      }
+
+      if (maxPage === 1) {
+        refs.btnNext.setAttribute('disabled', true);
+      }
+
+      // Делаем активной кнопку первой страницы //
+      document
+        .querySelector('.pagination-list__btn')
+        .classList.add('pagination-list__btn--active');
+
+      // Убираем класс is-hidden из кнопок "next" и "prev" //
+      refs.btnNext.classList.remove('is-hidden');
+      refs.btnPref.classList.remove('is-hidden');
+    })
+    .catch(error => {
+      console.log(error);
+    });
 }

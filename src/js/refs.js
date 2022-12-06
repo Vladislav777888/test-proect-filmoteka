@@ -8,4 +8,5 @@ const refs = {
   btnPref: document.querySelector('.pagintion__btn--pref'),
   btnNext: document.querySelector('.pagintion__btn--next'),
   paginationList: document.querySelector('.pagination-list'),
+  errerText: document.querySelector('.page-header__error-text'),
 };

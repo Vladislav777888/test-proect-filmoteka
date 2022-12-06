@@ -28,16 +28,17 @@
       <form class="form page-header__form">
         <input
           type="text"
+          name="search"
           placeholder="Movie search"
           class="page-header__input"
         />
-        <button class="form__button" type="button">
+        <button class="form__button" type="submit">
           <svg class="form__icon" width="12" height="12">
             <use href="./images/sprite/icons.svg#icon-search"></use>
           </svg>
         </button>
       </form>
-      <div class="page-header__error js-page-header__error">
+      <div class="page-header__error">
         <p class="page-header__error-text is-hidden">
           Search result not successful. Enter the correct movie name and try
           again.
