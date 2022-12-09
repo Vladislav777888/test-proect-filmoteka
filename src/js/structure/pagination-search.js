@@ -5,9 +5,9 @@ import { refs } from '../refs';
 export { onBtnNextSearch, onBtnPrefSearch, onPaginationListSearch };
 
 // Вешаем события на кнопки листания вперед и назад и на кнопки с номером страницы
-refs.btnNext.addEventListener('click', onBtnNextSearch);
-refs.btnPref.addEventListener('click', onBtnPrefSearch);
-refs.paginationList.addEventListener('click', onPaginationListSearch);
+// refs.btnNext.addEventListener('click', onBtnNextSearch);
+// refs.btnPref.addEventListener('click', onBtnPrefSearch);
+// refs.paginationList.addEventListener('click', onPaginationListSearch);
 
 // Делаю изначально кнопку листания назад и вперед неактивной
 refs.btnPref.setAttribute('disabled', true);

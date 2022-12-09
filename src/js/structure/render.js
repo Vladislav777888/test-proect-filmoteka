@@ -1,10 +1,17 @@
-import { fetchGenres, fetchMovies, fetchSearchMovies } from '../api-servise';
+import {
+  fetchGenres,
+  fetchMovies,
+  fetchSearchMovies,
+  getMovieById,
+  getTrailerById,
+} from '../api-servise';
 import { onBtnNext, onBtnPref, onPaginationList } from './pagination-scroll';
 import {
   onBtnNextSearch,
   onBtnPrefSearch,
   onPaginationListSearch,
 } from './pagination-search';
+
 import { refs } from '../refs';
 import axios from 'axios';
 import notiflix from 'notiflix';
@@ -16,8 +23,11 @@ const LOCALSTORAGE_KEY = 'genres';
 const BASE_POSTER_URL = 'https://image.tmdb.org/t/p/w500/';
 const FAKE_POSTER =
   'https://freesvg.org/img/cyberscooty-movie-video-tape-remix.png';
+const TRAILER_BTN_IMG =
+  'https://t4.ftcdn.net/jpg/00/31/52/05/240_F_31520505_E1LEpdbXWSPYxb4kuaZWfoi2JvAO8SKC.jpg';
 
 refs.form.addEventListener('submit', onFormSubmit);
+// refs.filmotekaList.addEventListener('click', onFilmClick);
 
 // Переменная для страниц
 let page = 1;
@@ -39,6 +49,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   fetchMovies(page)
     .then(data => {
+      console.log(data);
       renderFilms(data);
       renderPagination(data);
 
@@ -95,7 +106,7 @@ function renderFilms(data) {
         release_date = '';
       }
 
-      return `<li class="films-list__item" data-id="${id}">
+      return `<li class="films-list__item" data-id="${id}"  data-modal-open>
   <a href="" class="films-list__link">
     <img
       src="${poster_path}"
@@ -187,3 +198,97 @@ function onFormSubmit(evt) {
       console.log(error);
     });
 }
+
+// ---------------------RENDER MODAL-----------------------
+// function onFilmClick(evt) {
+//   evt.preventDefault();
+//   const filmId = evt.target.closest('li').dataset.id;
+
+//   getMovieById(filmId)
+//     .then(data => {
+//       return data.data;
+//     })
+//     .then(data => {
+//       if (!data.poster_path) {
+//         data.poster_path = FAKE_POSTER;
+//       } else {
+//         data.poster_path = BASE_POSTER_URL + data.poster_path;
+//       }
+
+//       if (!data.title) {
+//         title = 'no name';
+//       }
+
+//       if (!data.vote_average) {
+//         data.vote_average = 'N/A';
+//       } else {
+//         data.vote_average = String(data.vote_average).slice(0, 3);
+//       }
+
+//       if (!data.vote_count) {
+//         data.vote_count = 'N/A';
+//       }
+
+//       if (!data.popularity) {
+//         data.popularity = 'N/A';
+//       }
+
+//       if (!data.genres.length) {
+//         data.genres = 'genres unknown';
+//       } else {
+//         data.genres = data.genres.map(genre => genre.name).join(', ');
+//       }
+
+//       if (!data.overview) {
+//         data.overview = 'No description';
+//       }
+//       // setTimeout(() => {
+//       //   preload();
+//       // }, 100);
+//       // console.log(data.genres);
+//       dataVar = data;
+//       // console.log(dataVar);
+//       const filmInfo = `<div class="modal">
+//   <button class="button-close" type="button" data-modal-close>
+//     <svg class="button-close__icon" width="14" height="14">
+//       <use href="${refs.hrefIcon}"></use>
+//     </svg>
+//   </button>
+//   <img class="modal__img-wrapper" src="${data.poster_path}" alt="${data.title}">
+//   <div class="modal__info">
+//     <p class="modal__title">${data.title}</p>
+//     <div class="modal__data">
+//         <p class="modal__data-info"><span class="modal__data-info--grey">Vote / Votes</span><span class="modal__data-number"><span class="modal__data-ratio">${data.vote_average}</span>/ ${data.vote_count}</span></p>
+//         <p class="modal__data-info"><span class="modal__data-info--grey">Popularity</span><span class="modal__data-number">${data.popularity}</span></p>
+//         <p class="modal__data-info"><span class="modal__data-info--grey">Original Title</span><span>${data.title}</span></p>
+//         <p class="modal__data-info"><span class="modal__data-info--grey">Genre</span><span>${data.genres}</span></p>
+//     </div>
+//     <div class="modal__description">
+//         <p class="modal__description-title">About<button class="modal__button-play" type="button" data-value="${filmId}"><img class="modal__button-play-wrapper" src="${TRAILER_BTN_IMG}" alt="trailer"></button></p>
+//         <p class="modal__description-about">${data.overview}</p>
+//     </div>
+//     <div class="modal__buttons" >
+//         <button class="modal__button modal__button--watched" type="button" data-value="watched">ADD TO WATCHED</button>
+//         <button class="modal__button modal__button--queue" type="button" data-value="queue">ADD TO QUEUE</button>
+//     </div>
+//   </div>
+//   `;
+//       refs.modalFilm.insertAdjacentHTML('beforeend', filmInfo);
+//       refs.modalFilm.classList.remove('is-hidden');
+//       const btnCloseModal =
+//         refs.modalFilm.getElementsByClassName('button-close')[0];
+//       btnCloseModal.addEventListener('click', closeModalByBtn);
+
+//       const btnTrailerModal = refs.modalFilm.querySelector(
+//         '.modal__button-play'
+//       );
+//       console.log(btnTrailerModal);
+//       // btnTrailerModal.addEventListener('click', FUNCTION(filmId)); -------- сюди додату функцію для відтворення трейлера
+//       // btnTrailerModal.addEventListener('click', showTrailer(filmId));
+//     });
+// }
+
+// function closeModalByBtn() {
+//   refs.modalFilm.classList.add('is-hidden');
+//   document.querySelector('body').style.overflow = 'auto';
+// }

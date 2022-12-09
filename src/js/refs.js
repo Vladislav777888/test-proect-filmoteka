@@ -9,4 +9,6 @@ const refs = {
   btnNext: document.querySelector('.pagintion__btn--next'),
   paginationList: document.querySelector('.pagination-list'),
   errerText: document.querySelector('.page-header__error-text'),
+  modalFilm: document.querySelector('.backdrop'),
+  hrefIcon: document.querySelector('.button-close-img').getAttribute('href'),
 };
