@@ -11,11 +11,13 @@ import {
   onBtnPrefSearch,
   onPaginationListSearch,
 } from './pagination-search';
+import playBtn from '../../images/play-btn/play-btn.png';
 
 import { refs } from '../refs';
 import axios from 'axios';
-import notiflix from 'notiflix';
-import async from 'async';
+import Notiflix from 'notiflix';
+import * as basicLightbox from 'basiclightbox';
+import 'basiclightbox/dist/basicLightbox.min.css';
 
 export { renderFilms, renderPagination, searchQuery };
 
@@ -23,11 +25,10 @@ const LOCALSTORAGE_KEY = 'genres';
 const BASE_POSTER_URL = 'https://image.tmdb.org/t/p/w500/';
 const FAKE_POSTER =
   'https://freesvg.org/img/cyberscooty-movie-video-tape-remix.png';
-const TRAILER_BTN_IMG =
-  'https://t4.ftcdn.net/jpg/00/31/52/05/240_F_31520505_E1LEpdbXWSPYxb4kuaZWfoi2JvAO8SKC.jpg';
 
 refs.form.addEventListener('submit', onFormSubmit);
-// refs.filmotekaList.addEventListener('click', onFilmClick);
+refs.filmotekaList.addEventListener('click', onFilmClick);
+refs.modalFilm.addEventListener('click', closeModal);
 
 // Переменная для страниц
 let page = 1;
@@ -38,6 +39,10 @@ let genres = [];
 // значение поискового слова
 let searchQuery = '';
 
+// Для библиотеки  показа трейлера basicLightbox
+let instance;
+
+// Загрузка популярных фильмов
 window.addEventListener('DOMContentLoaded', async () => {
   await fetchGenres()
     .then(array => {
@@ -200,95 +205,182 @@ function onFormSubmit(evt) {
 }
 
 // ---------------------RENDER MODAL-----------------------
-// function onFilmClick(evt) {
-//   evt.preventDefault();
-//   const filmId = evt.target.closest('li').dataset.id;
+// Функция при клике на карточку фильма
+function onFilmClick(evt) {
+  evt.preventDefault();
 
-//   getMovieById(filmId)
-//     .then(data => {
-//       return data.data;
-//     })
-//     .then(data => {
-//       if (!data.poster_path) {
-//         data.poster_path = FAKE_POSTER;
-//       } else {
-//         data.poster_path = BASE_POSTER_URL + data.poster_path;
-//       }
+  if (evt.target === evt.currentTarget) {
+    return;
+  }
 
-//       if (!data.title) {
-//         title = 'no name';
-//       }
+  document.querySelector('body').style.overflow = 'hidden';
+  document.addEventListener('keydown', closeModalByEsc);
+  refs.modalFilm.removeChild(refs.modalFilm.lastElementChild);
 
-//       if (!data.vote_average) {
-//         data.vote_average = 'N/A';
-//       } else {
-//         data.vote_average = String(data.vote_average).slice(0, 3);
-//       }
+  const filmId = evt.target.closest('li').dataset.id;
 
-//       if (!data.vote_count) {
-//         data.vote_count = 'N/A';
-//       }
+  getMovieById(filmId)
+    .then(data => {
+      return data.data;
+    })
+    .then(data => {
+      refs.modalFilm.classList.remove('is-hidden');
+      getFilmModal(data, filmId);
 
-//       if (!data.popularity) {
-//         data.popularity = 'N/A';
-//       }
+      const btnCloseModal = document.querySelector('.button-close');
+      btnCloseModal.addEventListener('click', closeModalByBtn);
 
-//       if (!data.genres.length) {
-//         data.genres = 'genres unknown';
-//       } else {
-//         data.genres = data.genres.map(genre => genre.name).join(', ');
-//       }
+      const btnTrailerModal = document.querySelector('.modal__button-play');
+      btnTrailerModal.addEventListener('click', showTrailer);
+    });
+}
 
-//       if (!data.overview) {
-//         data.overview = 'No description';
-//       }
-//       // setTimeout(() => {
-//       //   preload();
-//       // }, 100);
-//       // console.log(data.genres);
-//       dataVar = data;
-//       // console.log(dataVar);
-//       const filmInfo = `<div class="modal">
-//   <button class="button-close" type="button" data-modal-close>
-//     <svg class="button-close__icon" width="14" height="14">
-//       <use href="${refs.hrefIcon}"></use>
-//     </svg>
-//   </button>
-//   <img class="modal__img-wrapper" src="${data.poster_path}" alt="${data.title}">
-//   <div class="modal__info">
-//     <p class="modal__title">${data.title}</p>
-//     <div class="modal__data">
-//         <p class="modal__data-info"><span class="modal__data-info--grey">Vote / Votes</span><span class="modal__data-number"><span class="modal__data-ratio">${data.vote_average}</span>/ ${data.vote_count}</span></p>
-//         <p class="modal__data-info"><span class="modal__data-info--grey">Popularity</span><span class="modal__data-number">${data.popularity}</span></p>
-//         <p class="modal__data-info"><span class="modal__data-info--grey">Original Title</span><span>${data.title}</span></p>
-//         <p class="modal__data-info"><span class="modal__data-info--grey">Genre</span><span>${data.genres}</span></p>
-//     </div>
-//     <div class="modal__description">
-//         <p class="modal__description-title">About<button class="modal__button-play" type="button" data-value="${filmId}"><img class="modal__button-play-wrapper" src="${TRAILER_BTN_IMG}" alt="trailer"></button></p>
-//         <p class="modal__description-about">${data.overview}</p>
-//     </div>
-//     <div class="modal__buttons" >
-//         <button class="modal__button modal__button--watched" type="button" data-value="watched">ADD TO WATCHED</button>
-//         <button class="modal__button modal__button--queue" type="button" data-value="queue">ADD TO QUEUE</button>
-//     </div>
-//   </div>
-//   `;
-//       refs.modalFilm.insertAdjacentHTML('beforeend', filmInfo);
-//       refs.modalFilm.classList.remove('is-hidden');
-//       const btnCloseModal =
-//         refs.modalFilm.getElementsByClassName('button-close')[0];
-//       btnCloseModal.addEventListener('click', closeModalByBtn);
+// Открытие модалке после запроса
+function getFilmModal(data, filmId) {
+  if (!data.poster_path) {
+    data.poster_path = FAKE_POSTER;
+  } else {
+    data.poster_path = BASE_POSTER_URL + data.poster_path;
+  }
 
-//       const btnTrailerModal = refs.modalFilm.querySelector(
-//         '.modal__button-play'
-//       );
-//       console.log(btnTrailerModal);
-//       // btnTrailerModal.addEventListener('click', FUNCTION(filmId)); -------- сюди додату функцію для відтворення трейлера
-//       // btnTrailerModal.addEventListener('click', showTrailer(filmId));
-//     });
-// }
+  if (!data.title) {
+    title = 'no name';
+  }
 
-// function closeModalByBtn() {
-//   refs.modalFilm.classList.add('is-hidden');
-//   document.querySelector('body').style.overflow = 'auto';
-// }
+  if (!data.vote_average) {
+    data.vote_average = 'N/A';
+  } else {
+    data.vote_average = String(data.vote_average).slice(0, 3);
+  }
+
+  if (!data.vote_count) {
+    data.vote_count = 'N/A';
+  }
+
+  if (!data.popularity) {
+    data.popularity = 'N/A';
+  }
+
+  if (!data.genres.length) {
+    data.genres = 'genres unknown';
+  } else {
+    data.genres = data.genres.map(genre => genre.name).join(', ');
+  }
+
+  if (!data.overview) {
+    data.overview = 'No description';
+  }
+  // setTimeout(() => {
+  //   preload();
+  // }, 100);
+  // console.log(data.genres);
+  dataVar = data;
+  // console.log(dataVar);
+  const filmInfo = `<div class="modal">
+  <button class="button-close" type="button" data-modal-close>
+    <svg class="button-close__icon" width="14" height="14">
+      <use href="${refs.hrefIcon}"></use>
+    </svg>
+  </button>
+  <img class="modal__img-wrapper" src="${data.poster_path}" alt="${data.title}">
+  <div class="modal__info">
+    <p class="modal__title">${data.title}</p>
+    <div class="modal__data">
+        <p class="modal__data-info"><span class="modal__data-info--grey">Vote / Votes</span><span class="modal__data-number"><span class="modal__data-ratio">${data.vote_average}</span>/ ${data.vote_count}</span></p>
+        <p class="modal__data-info"><span class="modal__data-info--grey">Popularity</span><span class="modal__data-number">${data.popularity}</span></p>
+        <p class="modal__data-info"><span class="modal__data-info--grey">Original Title</span><span>${data.title}</span></p>
+        <p class="modal__data-info"><span class="modal__data-info--grey">Genre</span><span>${data.genres}</span></p>
+    </div>
+    <div class="modal__description">
+        <p class="modal__description-title">About<button class="modal__button-play" type="button" data-value="${filmId}"><img class="modal__button-play-wrapper" src="${playBtn}" alt="trailer"></button></p>
+        <p class="modal__description-about">${data.overview}</p>
+    </div>
+    <div class="modal__buttons" >
+        <button class="modal__button modal__button--watched" type="button" data-value="watched">ADD TO WATCHED</button>
+        <button class="modal__button modal__button--queue" type="button" data-value="queue">ADD TO QUEUE</button>
+    </div>
+  </div>
+  `;
+
+  refs.modalFilm.insertAdjacentHTML('beforeend', filmInfo);
+}
+
+// Закрытие модалки по кнопке
+function closeModalByBtn() {
+  refs.modalFilm.classList.add('is-hidden');
+  document.querySelector('body').style.overflow = 'auto';
+}
+
+// Закрытие модалки по клацанию по бэкдропу
+export function closeModal(evt) {
+  if (evt.target === refs.modalFilm) {
+    refs.modalFilm.classList.add('is-hidden');
+    document.querySelector('body').style.overflow = 'auto';
+  }
+}
+
+// Закрытие модалки кнопкой Esc
+function closeModalByEsc(evt) {
+  if (evt.code === 'Escape') {
+    refs.modalFilm.classList.add('is-hidden');
+    document.querySelector('body').style.overflow = 'auto';
+    document.removeEventListener('keydown', closeModalByEsc);
+  }
+}
+
+// Показ трейлера фильма
+async function showTrailer(evt) {
+  let trailerId = evt.currentTarget.dataset.value;
+  try {
+    const data = await getTrailerById(trailerId);
+
+    if (data.length === 0 || data === undefined) {
+      Notiflix.Notify.failure('Sorry, trailer not found.');
+      return;
+    }
+
+    let key = '';
+    data.forEach(element => {
+      if (element.type === 'Trailer') {
+        if (element.name.includes('Official')) {
+          key = element.key;
+          return;
+        }
+      }
+    });
+
+    if (!key) {
+      key = data[0].key;
+    }
+
+    instance = basicLightbox.create(
+      `                
+              <iframe class="youtube-modal" allow="fullscreen" src="https://www.youtube.com/embed/${key}"></iframe>
+                
+            `,
+      {
+        onShow: () => {
+          // console.log('Добавили ESC');
+          document.addEventListener('keydown', onPressEscape);
+        },
+        onClose: () => {
+          // console.log('Убрали ESC');
+          document.removeEventListener('keydown', onPressEscape);
+        },
+      }
+    );
+
+    instance.show();
+  } catch (error) {
+    Notiflix.Notify.failure('Sorry, trailer not found.');
+  }
+}
+
+// Закрытие трейлера кнопкой Esc
+function onPressEscape(event) {
+  if (event.key === 'Escape') {
+    instance.close(() => {
+      // console.log('Закрыли, когда нажали ESC');
+    });
+  }
+}

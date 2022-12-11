@@ -1,0 +1,14 @@
+.youtube-modal {
+  min-width: 280px;
+  min-height: 166px;
+
+  @media screen and (min-width: 768px) {
+    min-width: 760px;
+    min-height: 450px;
+  }
+
+  @media screen and (min-width: 1280px) {
+    min-width: 1024px;
+    min-height: 500px;
+  }
+}

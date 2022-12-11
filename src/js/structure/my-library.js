@@ -1,4 +1,5 @@
 import { refs } from '../refs';
+console.log(document.title);
 
 refs.btnWatched.addEventListener('click', onBtnWatched);
 refs.btnQueue.addEventListener('click', onBtnQueue);
